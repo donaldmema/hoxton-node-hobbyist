@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./data.db"
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  name     String
+  photoUrl String
+  email    String  @unique
+  hobbies  Hobby[]
+}
+
+model Hobby {
+  id       Int     @id @default(autoincrement())
+  name     String
+  imageUrl String
+  active   Boolean @default(true)
+  userId   Int
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
