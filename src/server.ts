@@ -29,8 +29,25 @@ app.get("/users/:id", async (req, res) => {
 });
 
 app.post("/users", async (req, res) => {
+  const userData = {
+    name: req.body.name,
+    photoUrl: req.body.photoUrl,
+    email: req.body.email,
+    hobbies: req.body.hobbies ? req.body.hobbies : [],
+  };
+
   const user = await prisma.user.create({
-    data: req.body,
+    data: {
+      name: userData.name,
+      photoUrl: userData.photoUrl,
+      email: userData.email,
+      hobbies: {
+        connectOrCreate: userData.hobbies.map((hobby: string) => ({
+          where: { name: hobby },
+          create: { name: hobby },
+        })),
+      },
+    },
     include: { hobbies: true },
   });
   res.send(user);
@@ -55,7 +72,7 @@ app.delete("/users/:id", async (req, res) => {
 });
 
 app.get("/hobbies", async (req, res) => {
-  const hobbies = await prisma.hobby.findMany({ include: { user: true } });
+  const hobbies = await prisma.hobby.findMany({ include: { users: true } });
   res.send(hobbies);
 });
 
@@ -63,7 +80,7 @@ app.get("/hobbies/:id", async (req, res) => {
   const id = Number(req.params.id);
   const hobby = await prisma.hobby.findUnique({
     where: { id },
-    include: { user: true },
+    include: { users: true },
   });
   if (hobby) {
     res.send(hobby);
@@ -77,7 +94,7 @@ app.patch("/hobbies/:id", async (req, res) => {
   const hobby = await prisma.hobby.update({
     where: { id },
     data: req.body,
-    include: { user: true },
+    include: { users: true },
   });
   res.send(hobby);
 });
@@ -85,7 +102,7 @@ app.patch("/hobbies/:id", async (req, res) => {
 app.post("/hobbies", async (req, res) => {
   const hobby = await prisma.hobby.create({
     data: req.body,
-    include: { user: true },
+    include: { users: true },
   });
   res.send(hobby);
 });
